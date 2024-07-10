@@ -1,73 +1,127 @@
-import Tools.DBUtils;
 import Tools.DataTreatment;
 
+import javax.swing.*;
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
+import java.sql.SQLException;
+
+import static java.lang.System.exit;
 
 /**
  * TODO
- * Me da que no vale con hacer una consulta,
- * eso incluiría toda la BD y no lo que se acaba de exportar
- * Igual con el ID/key generado con la opción esa que vi antes cuando se genera el ps
  * -Hacer el resumen tras insertar.
  * -Exportar a un nuevo fichero
- * -Crear una GUI o algo para elegir fichero y mostrar el resumen
+ * -Crear una GUI o algo para mostrar el resumen
  */
 
 
 public class App {
+  private static final Integer BATCH_SIZE = 100;
+  
+  private static final String DB_URL = "jdbc:mysql://localhost/prueba_basica";
+  private static final String DB_USER = "root";
+  private static final String DB_PWD = "";
+  
   public static void main (String[] args) {
-    String DB_URL = "jdbc:mysql://localhost/prueba_basica";
-    String USER = "root";
-    String query = "INSERT INTO `order` VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-    try (BufferedReader reader = Files.newBufferedReader(Paths.get("./src/main/resources/RegistroVentas1.csv"));
-         Connection conn = DriverManager.getConnection(DB_URL, USER, "")) {
-      PreparedStatement ps = conn.prepareStatement(query);
-      conn.setAutoCommit(false);
-
-      String line = null;
-      int count = 0;
-      int batchSize = 50;
-      reader.readLine();
-      while ((line = reader.readLine()) != null) {
-        String[] record = line.split(",");
-
-        ps.setString(1, record[0]);
-        ps.setString(2, record[1]);
-        ps.setString(3, record[2]);
-        ps.setString(4, record[3]);
-        ps.setString(5, record[4]);
-        ps.setObject(6, DataTreatment.parseDate(record[5]));
-        ps.setString(7, record[6]);
-        ps.setObject(8, DataTreatment.parseDate(record[7]));
-        ps.setInt(9, Integer.parseInt(record[8]));
-        ps.setDouble(10, Double.parseDouble(record[9]));
-        ps.setDouble(11, Double.parseDouble(record[10]));
-        ps.setDouble(12, Double.parseDouble(record[11]));
-        ps.setDouble(13, Double.parseDouble(record[12]));
-        ps.setDouble(14, Double.parseDouble(record[13]));
-
-        ps.addBatch();
-        if (count % batchSize == 0) {
-          ps.executeBatch();
-          System.out.println("Lanzo tras: " + count);
-        }
-        count++;
-      }
-      System.out.println("Lanzo tras: " + count);
-      ps.executeBatch();
-      conn.setAutoCommit(true);
-
-//      DBUtils.emptyDB();
+    File importFile = DataTreatment.selectFile();
+    
+    if (importFile == null) {
+      JOptionPane.showMessageDialog(
+              null,
+              "No se seleccionó un archivo válido. Saliendo del programa",
+              "Alerta", JOptionPane.WARNING_MESSAGE);
+      exit(1);
+    }
+    
+    try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PWD)) {
+      insertRecords(conn, importFile);
+      generateSummary(conn);
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
   }
+  
+  private static void insertRecords (Connection conn, File importFile) {
+    String query =
+            "INSERT INTO `order`" +
+            "(`region`, `country`, `itemType`, `salesChannel`, `orderPriority`," +
+            "`orderDate`, `orderId`, `shipDate`, `unitsSold`, `unitPrice`, " +
+            "`unitCost`, `totalRevenue`, `totalCost`, `totalProfit`)" +
+            " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    
+    try (BufferedReader reader = Files.newBufferedReader(importFile.toPath());) {
+      PreparedStatement ps = conn.prepareStatement(query, PreparedStatement.RETURN_GENERATED_KEYS);
+      conn.setAutoCommit(false);
+      
+      String line;
+      int count = 0;
+      
+      // Salta la línea de la cabecera antes de recorrer los datos
+      reader.readLine();
+      while ((line = reader.readLine()) != null) {
+        String[] record = line.split(",");
+        
+        setPreparedStatement(ps, record);
+        
+        if (count % BATCH_SIZE == 0) {
+          ps.executeBatch();
+          System.out.println("Registros insertados: " + count);
+        }
+        count++;
+        System.out.println(count);
+      }
+      ps.executeBatch();
+      System.out.println("Registros insertados: " + count);
+      conn.setAutoCommit(true);
+      System.out.println("Finalizada copia a la base de datos");
+    } catch (SQLException | IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+  
+  private static void setPreparedStatement(PreparedStatement ps, String[] record){
+    try {
+      ps.setString(1, record[0]);
+      ps.setString(2, record[1]);
+      ps.setString(3, record[2]);
+      ps.setString(4, record[3]);
+      ps.setString(5, record[4]);
+      ps.setObject(6, DataTreatment.parseDate(record[5]));
+      ps.setString(7, record[6]);
+      ps.setObject(8, DataTreatment.parseDate(record[7]));
+      ps.setInt(9, Integer.parseInt(record[8]));
+      ps.setDouble(10, Double.parseDouble(record[9]));
+      ps.setDouble(11, Double.parseDouble(record[10]));
+      ps.setDouble(12, Double.parseDouble(record[11]));
+      ps.setDouble(13, Double.parseDouble(record[12]));
+      ps.setDouble(14, Double.parseDouble(record[13]));
+      ps.addBatch();
+    } catch (SQLException e) {
+      throw new RuntimeException(e);
+    }
+  }
+  
+  private static void generateSummary (Connection conn) {
+    String query = "SELECT `region`, COUNT(*) AS 'quantity' " +
+                   "FROM `order`" +
+                   "GROUP BY `region`";
+  }
 }
+
+// List<Integer> generatedKeys = new ArrayList<Integer>();
+
+//generatedKeys.addAll(Arrays.asList());
+
+
+//      ResultSet rs = ps.getGeneratedKeys();
+//      while(rs.next()){
+//        System.out.println(rs.getString("GENERATED_KEY"));
+//      }
 
 //      List<List<String>> records =
 //              reader.lines()
