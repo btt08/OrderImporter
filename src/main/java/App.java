@@ -5,10 +5,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
+import java.sql.*;
 
 import static java.lang.System.exit;
 
@@ -28,18 +25,18 @@ public class App {
   private static final String DB_PWD = "";
   
   public static void main (String[] args) {
-    File importFile = DataTreatment.selectFile();
-    
-    if (importFile == null) {
-      JOptionPane.showMessageDialog(
-              null,
-              "No se seleccionó un archivo válido. Saliendo del programa",
-              "Alerta", JOptionPane.WARNING_MESSAGE);
-      exit(1);
-    }
+//    File importFile = DataTreatment.selectFile();
+//
+//    if (importFile == null) {
+//      JOptionPane.showMessageDialog(
+//              null,
+//              "No se seleccionó un archivo válido. Saliendo del programa",
+//              "Alerta", JOptionPane.WARNING_MESSAGE);
+//      exit(1);
+//    }
     
     try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PWD)) {
-      insertRecords(conn, importFile);
+//      insertRecords(conn, importFile);
       generateSummary(conn);
     } catch (Exception e) {
       throw new RuntimeException(e);
@@ -49,9 +46,9 @@ public class App {
   private static void insertRecords (Connection conn, File importFile) {
     String query =
             "INSERT INTO `order`" +
-            "(`region`, `country`, `itemType`, `salesChannel`, `orderPriority`," +
-            "`orderDate`, `orderId`, `shipDate`, `unitsSold`, `unitPrice`, " +
-            "`unitCost`, `totalRevenue`, `totalCost`, `totalProfit`)" +
+            "(`region`, `country`, `item_type`, `sales_channel`, `order_priority`," +
+            "`order_date`, `order_id`, `ship_date`, `units_sold`, `unit_price`, " +
+            "`unit_cost`, `total_revenue`, `total_cost`, `total_profit`)" +
             " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
     
     try (BufferedReader reader = Files.newBufferedReader(importFile.toPath());) {
@@ -84,7 +81,7 @@ public class App {
     }
   }
   
-  private static void setPreparedStatement(PreparedStatement ps, String[] record){
+  private static void setPreparedStatement (PreparedStatement ps, String[] record) {
     try {
       ps.setString(1, record[0]);
       ps.setString(2, record[1]);
@@ -107,9 +104,25 @@ public class App {
   }
   
   private static void generateSummary (Connection conn) {
-    String query = "SELECT `region`, COUNT(*) AS 'quantity' " +
-                   "FROM `order`" +
-                   "GROUP BY `region`";
+    String[] fields = new String[] {"region", "country", "item_type",
+                                    "sales_channel", "order_priority"};
+    for (String field : fields) {
+      String query = String.format("SELECT `%s` AS `field`, COUNT(*) AS 'quantity'" +
+                                   " FROM `order`" +
+                                   " GROUP BY `%s`", field, field);
+      try (Statement statement = conn.createStatement()) {
+        statement.execute(query);
+        ResultSet rs = statement.getResultSet();
+        System.out.println(field.toUpperCase());
+        while(rs.next()){
+          System.out.println("\t" + rs.getString("field") + ": " +
+                             rs.getInt("quantity"));
+        }
+        System.out.println();
+      } catch (SQLException e) {
+        throw new RuntimeException(e);
+      }
+    }
   }
 }
 
