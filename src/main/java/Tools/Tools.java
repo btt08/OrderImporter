@@ -7,7 +7,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
 
-public class DataTreatment {
+public class Tools {
   public static LocalDate parseDate (String date) {
     DateTimeFormatterBuilder dtfb = new DateTimeFormatterBuilder()
             .append(DateTimeFormatter
@@ -22,41 +22,39 @@ public class DataTreatment {
                                     "[M/d/uu]"));
     return LocalDate.parse(date, dtfb.toFormatter());
   }
-
-//  public static LocalDate parseDate (String date) {
-//    int currYearLastDigits = Year.now().getValue() % 100;
-//    String[] monthDayYear = date.split("/");
-//
-//    // Al tratarse de pedidos a digitalizar se asume que las fechas son pasadas
-//    // si el año no incluye las 4 cifras
-//    // se revisa para ver si se trata de 19xx o de 20xx
-//    // Esta lógica funciona con pedidos de menos de 100 años
-//    String newStrDate =
-//            (monthDayYear[2].length() == 2 ?
-//             (currYearLastDigits >= Integer.parseInt(monthDayYear[2]) ?
-//              "20" + monthDayYear[2] : "19" + monthDayYear[2]) :
-//             monthDayYear[2])
-//                    + "-" +
-//                    (monthDayYear[0].length() == 1 ? "0" + monthDayYear[0] :
-//                     monthDayYear[0])
-//                    + "-" +
-//                    (monthDayYear[1].length() == 1 ? "0" + monthDayYear[1] :
-//                     monthDayYear[1]);
-//
-//    return LocalDate.parse(newStrDate);
-//  }
   
   public static String getFormattedDate (LocalDate date) {
     return date.format(DateTimeFormatter.ofPattern("dd/MM/uuuu"));
   }
   
-  public static File selectFile () {
+  public static File selectImportFile () {
     JFileChooser chooser = new JFileChooser();
-    FileNameExtensionFilter filter = new FileNameExtensionFilter(
-            "Comma separated values", "CSV", "csv");
+    FileNameExtensionFilter filter =
+            new FileNameExtensionFilter("*.CSV", "CSV", "csv");
     chooser.setFileFilter(filter);
+    chooser.setDialogTitle("Abrir fichero para importar");
     int returnVal = chooser.showOpenDialog(null);
     return returnVal == JFileChooser.APPROVE_OPTION ?
            chooser.getSelectedFile() : null;
+  }
+  
+  public static File selectSaveFile () {
+    JFileChooser chooser = new JFileChooser();
+    FileNameExtensionFilter filter =
+            new FileNameExtensionFilter("*.CSV", "CSV", "csv");
+    chooser.setFileFilter(filter);
+    chooser.setDialogTitle("Elegir fichero para exportar");
+    int returnVal = chooser.showSaveDialog(null);
+    
+    File file = null;
+    if (returnVal == JFileChooser.APPROVE_OPTION){
+      file = chooser.getSelectedFile();
+      
+      String fileName = file.getName();
+      if (!fileName.matches(".csv&")){
+        file = new File(file.getAbsolutePath() + ".csv");
+      }
+    }
+    return file;
   }
 }
