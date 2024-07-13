@@ -47,10 +47,11 @@ public class App {
         System.out.println("Todos los registros son duplicados o el fichero estaba vacío");
         System.exit(0);
       }
-      System.out.println("Creando resumen de los datos\n\n");
-      generateSummary(conn, ids);
       
       exportToFile(conn, ids);
+      
+      System.out.println("Creando resumen de los datos\n\n");
+      generateSummary(conn, ids);
       
       conn.setAutoCommit(true);
       System.out.println("\nFinalizada transacción. Datos insertados en la BD");
