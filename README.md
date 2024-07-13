@@ -27,7 +27,7 @@ Es un conjunto de pedidos que se han ido recopilando históricamente de manera m
 
 El importador se debe plantear de forma que el usuario le pase/indique cualquier fichero. Dejamos aquí dos ficheros a modo de ejemplo con datos de pedidos.
 
-Descargar: [Fichero 1](RegistroVentas1.csv)  [Fichero 2](https://drive.google.com/file/d/1lLMqoS4dxaRM3NPFUsacq0Ca8_6RrygA/view?usp=sharing)
+Descargar: [Fichero 1](files/RegistroVentas1.csv)  [Fichero 2](https://drive.google.com/file/d/1lLMqoS4dxaRM3NPFUsacq0Ca8_6RrygA/view?usp=sharing)
 
 ## Funcionalidad
  - Independientemente del origen de los pedidos, al terminar la importación, deberá mostrar un resumen del número de pedidos de cada tipo según distintas columnas.
@@ -59,3 +59,8 @@ Las fechas se tendrán que mostrar con el formato: "{día}/{mes}/{año}", siendo
 ## Requisitos
  - Lenguaje de programación: Java
  - Base de datos: cualquiera relacional con JDBC
+
+## Cómo usar solución
+ - Utilizar el [script sql](files/order.sql) para crear la tabla en MySQL
+ - Modificar constantes DB_URL, DB_USER y DB_PWD en la clase App con los valones correspondientes a la base de datos local
+ - Ejecutar
