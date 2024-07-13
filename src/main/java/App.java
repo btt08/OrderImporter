@@ -17,7 +17,7 @@ import java.util.List;
 
 
 public class App {
-  private static final Integer BATCH_SIZE = 100;
+  private static final Integer BATCH_SIZE = 1000;
   
   private static final String DB_URL = "jdbc:mysql://localhost/prueba_basica";
   private static final String DB_USER = "root";
@@ -53,8 +53,8 @@ public class App {
       exportToFile(conn, ids);
       
       conn.setAutoCommit(true);
-      System.out.println("Finalizada transacción. Datos insertados en la BD");
-      System.out.println("\nProceso finalizado con éxito");
+      System.out.println("\nFinalizada transacción. Datos insertados en la BD");
+      System.out.println("Proceso finalizado con éxito");
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
@@ -75,7 +75,6 @@ public class App {
       String line;
       int count = 0;
       List<Integer> generatedKeys = new ArrayList<>();
-      ResultSet rs;
       
       // Salta la línea de la cabecera
       fileReader.readLine();
@@ -87,23 +86,12 @@ public class App {
         setPreparedStatement(ps, record);
         
         if (count % BATCH_SIZE == 0) {
-          ps.executeBatch();
-          rs = ps.getGeneratedKeys();
-          
-          while (rs.next()) {
-            generatedKeys.add(rs.getInt("GENERATED_KEY"));
-          }
-          
+          executeBatch(ps, generatedKeys);
           System.out.println("Registros procesados: " + count);
         }
         count++;
       }
-      ps.executeBatch();
-      rs = ps.getGeneratedKeys();
-      
-      while (rs.next()) {
-        generatedKeys.add(rs.getInt("GENERATED_KEY"));
-      }
+      executeBatch(ps, generatedKeys);
       
       System.out.println("Registros procesados: " + count);
       System.out.println("\nFinalizada lectura del fichero\n\n");
@@ -117,7 +105,7 @@ public class App {
     }
   }
   
-  private static void generateSummary (Connection conn, Integer[] keys) {
+  private static void generateSummary (Connection conn, Integer[] ids) {
     String[] summaryFields = new String[] {"region", "country", "item_type",
                                            "sales_channel", "order_priority"};
     
@@ -125,7 +113,7 @@ public class App {
       String query = String.format("SELECT `%s` AS `value`, COUNT(*) AS 'quantity' " +
                                    "FROM `order` " +
                                    "WHERE `id` BETWEEN %d AND %d " +
-                                   "GROUP BY `%s`", field, keys[0], keys[1], field);
+                                   "GROUP BY `%s`", field, ids[0], ids[1], field);
       
       try (Statement statement = conn.createStatement()) {
         statement.execute(query);
@@ -144,7 +132,7 @@ public class App {
   
   private static void exportToFile (Connection conn, Integer[] keys) {
     String query = String.format(
-            "SELECT " +
+            "SELECT" +
             " `order_id`, `order_priority`, `order_date`, `region`, `country`, " +
             " `item_type`, `sales_channel`, `ship_date`, `units_sold`, `unit_price`, " +
             " `unit_cost`, `total_revenue`, `total_cost`, `total_profit` " +
@@ -153,10 +141,11 @@ public class App {
             "ORDER BY `order_id`", keys[0], keys[1]);
     
     try (Statement statement = conn.createStatement()) {
+      System.out.println("Exportando datos al fichero " + exportFile.toPath());
+      
       ResultSet rs = statement.executeQuery(query);
       List<String> dataToExport = getCSVDataToExport(rs);
       
-      System.out.println("Exportando datos a archivo");
       try (FileWriter fw = new FileWriter(exportFile)) {
         for (String record : dataToExport) {
           fw.write(record + "\n");
@@ -191,6 +180,15 @@ public class App {
     } catch (SQLException e) {
       System.out.println("add batch");
       throw new RuntimeException(e);
+    }
+  }
+  
+  private static void executeBatch (PreparedStatement ps, List<Integer> generatedKeys) throws SQLException {
+    ps.executeBatch();
+    ResultSet rs = ps.getGeneratedKeys();
+    
+    while (rs.next()) {
+      generatedKeys.add(rs.getInt("GENERATED_KEY"));
     }
   }
   
