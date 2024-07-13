@@ -27,11 +27,12 @@ Es un conjunto de pedidos que se han ido recopilando históricamente de manera m
 
 El importador se debe plantear de forma que el usuario le pase/indique cualquier fichero. Dejamos aquí dos ficheros a modo de ejemplo con datos de pedidos.
 
-Descargar: Fichero 1  fichero 2
+Descargar: [Fichero 1](RegistroVentas1.csv)  [Fichero 2](https://drive.google.com/file/d/1lLMqoS4dxaRM3NPFUsacq0Ca8_6RrygA/view?usp=sharing)
 
 ## Funcionalidad
  - Independientemente del origen de los pedidos, al terminar la importación, deberá mostrar un resumen del número de pedidos de cada tipo según distintas columnas.
  - Además deberá generar un fichero con los registros ordenados por número de pedido.
+ - En el fichero sólo deberían aparecer los registros importados durante la lectura del fichero, sólo los de una importación.
  - El campo por el que tiene que estar ordenado el fichero resultante es orderId.
  - En el resumen final deberá salir el conteo por cada tipo de los campos: Region, Country, Item Type, Sales Channel, Order Priority.
 
