@@ -57,5 +57,5 @@ El fichero resultante deberá ser un CSV, con las siguientes columnas:
 Las fechas se tendrán que mostrar con el formato: "{día}/{mes}/{año}", siendo día y mes números de dos dígitos, y el año de cuatro. Ejemplo: 12/06/1986
 
 ## Requisitos
-Lenguaje de programación: Java
-Base de datos: cualquiera relacional con JDBC
+ - Lenguaje de programación: Java
+ - Base de datos: cualquiera relacional con JDBC
