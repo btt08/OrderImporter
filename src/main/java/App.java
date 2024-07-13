@@ -61,7 +61,6 @@ public class App {
   }
   
   private static Integer[] insertRecords (Connection conn) {
-    List<String> orderIds = new ArrayList<>();
     String query =
             "INSERT IGNORE INTO `order`" +
             "(`region`, `country`, `item_type`, `sales_channel`, `order_priority`," +
@@ -84,8 +83,6 @@ public class App {
       System.out.println("Iniciada transacción");
       while ((line = fileReader.readLine()) != null) {
         String[] record = line.split(",");
-        
-        orderIds.add(record[6]);
         
         setPreparedStatement(ps, record);
         
@@ -162,7 +159,7 @@ public class App {
       System.out.println("Exportando datos a archivo");
       try (FileWriter fw = new FileWriter(exportFile)) {
         for (String record : dataToExport) {
-          fw.write(record);
+          fw.write(record + "\n");
         }
         
         System.out.println("Archivo creado correctamente");
