@@ -62,5 +62,5 @@ Las fechas se tendrán que mostrar con el formato: "{día}/{mes}/{año}", siendo
 
 ## Cómo usar solución
  - Utilizar el [script sql](files/order.sql) para crear la tabla en MySQL
- - Modificar constantes DB_URL, DB_USER y DB_PWD en la clase App con los valones correspondientes a la base de datos local
+ - Modificar constantes DB_URL, DB_USER y DB_PWD en la clase App con los valores correspondientes a la base de datos local
  - Ejecutar
