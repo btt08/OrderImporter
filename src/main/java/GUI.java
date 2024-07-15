@@ -1,32 +1,8 @@
-package Tools;
-
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.io.File;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeFormatterBuilder;
 
-public class Tools {
-  public static LocalDate parseDate (String date) {
-    DateTimeFormatterBuilder dtfb = new DateTimeFormatterBuilder()
-            .append(DateTimeFormatter
-                            .ofPattern(
-                                    "[MM/dd/uuuu]" +
-                                    "[MM/d/uuuu]" +
-                                    "[M/dd/uuuu]" +
-                                    "[M/d/uuuu]" +
-                                    "[MM/dd/uu]" +
-                                    "[MM/d/uu]" +
-                                    "[M/dd/uu]" +
-                                    "[M/d/uu]"));
-    return LocalDate.parse(date, dtfb.toFormatter());
-  }
-  
-  public static String getFormattedDate (LocalDate date) {
-    return date.format(DateTimeFormatter.ofPattern("dd/MM/uuuu"));
-  }
-  
+public class GUI {
   public static File selectImportFile () {
     JFileChooser chooser = new JFileChooser();
     FileNameExtensionFilter filter =
@@ -47,14 +23,22 @@ public class Tools {
     int returnVal = chooser.showSaveDialog(null);
     
     File file = null;
-    if (returnVal == JFileChooser.APPROVE_OPTION){
+    if (returnVal == JFileChooser.APPROVE_OPTION) {
       file = chooser.getSelectedFile();
       
       String fileName = file.getName();
-      if (!fileName.matches(".csv&")){
+      if (!fileName.matches(".csv&")) {
         file = new File(file.getAbsolutePath() + ".csv");
       }
     }
     return file;
+  }
+  
+  public static void showError () {
+    JOptionPane.showMessageDialog(
+            null,
+            "No se seleccionó un archivo válido. Saliendo del programa",
+            "Alerta", JOptionPane.WARNING_MESSAGE);
+    System.exit(1);
   }
 }

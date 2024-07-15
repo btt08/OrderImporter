@@ -1,6 +1,3 @@
-import Tools.Tools;
-
-import javax.swing.*;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileWriter;
@@ -26,18 +23,14 @@ public class App {
   private static File exportFile;
   
   public static void main (String[] args) {
+    importFile = GUI.selectImportFile();
+    exportFile = GUI.selectSaveFile();
+    
+    if (importFile == null || exportFile == null) {
+      GUI.showError();
+    }
+    
     try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PWD)) {
-      importFile = Tools.selectImportFile();
-      exportFile = Tools.selectSaveFile();
-      
-      if (importFile == null || exportFile == null) {
-        JOptionPane.showMessageDialog(
-                null,
-                "No se seleccionó un archivo válido. Saliendo del programa",
-                "Alerta", JOptionPane.WARNING_MESSAGE);
-        System.exit(1);
-      }
-      
       conn.setAutoCommit(false);
       
       // Guardamos id mínimo y máximo para identificar lo insertado
