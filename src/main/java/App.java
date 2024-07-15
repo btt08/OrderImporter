@@ -1,3 +1,5 @@
+import javax.swing.*;
+import java.awt.*;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileWriter;
@@ -7,11 +9,6 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * TODO
- * -Crear una GUI o algo para mostrar el resumen
- */
-
 
 public class App {
   private static final Integer BATCH_SIZE = 1000;
@@ -19,6 +16,7 @@ public class App {
   private static final String DB_URL = "jdbc:mysql://localhost/prueba_basica";
   private static final String DB_USER = "root";
   private static final String DB_PWD = "";
+  
   private static File importFile;
   private static File exportFile;
   
@@ -99,31 +97,6 @@ public class App {
     }
   }
   
-  private static void generateSummary (Connection conn, Integer[] ids) {
-    String[] summaryFields = new String[] {"region", "country", "item_type",
-                                           "sales_channel", "order_priority"};
-    
-    for (String field : summaryFields) {
-      String query = String.format("SELECT `%s` AS `value`, COUNT(*) AS 'quantity' " +
-                                   "FROM `order` " +
-                                   "WHERE `id` BETWEEN %d AND %d " +
-                                   "GROUP BY `%s`", field, ids[0], ids[1], field);
-      
-      try (Statement statement = conn.createStatement()) {
-        statement.execute(query);
-        ResultSet rs = statement.getResultSet();
-        System.out.println(field.toUpperCase());
-        while (rs.next()) {
-          System.out.println("\t" + rs.getString("value") + ": " +
-                             rs.getInt("quantity"));
-        }
-        System.out.println();
-      } catch (SQLException e) {
-        throw new RuntimeException(e);
-      }
-    }
-  }
-  
   private static void exportToFile (Connection conn, Integer[] keys) {
     String query = String.format(
             "SELECT" +
@@ -152,6 +125,35 @@ public class App {
     } catch (SQLException e) {
       throw new RuntimeException(e);
     }
+  }
+  
+  private static void generateSummary (Connection conn, Integer[] ids) {
+    JFrame mainWindow = GUI.createMainWindow();
+    
+    String[] summaryFields = new String[] {"region", "country", "item_type",
+                                           "sales_channel", "order_priority"};
+    
+    for (String field : summaryFields) {
+      String query = String.format("SELECT `%s` AS `value`, COUNT(*) AS 'quantity' " +
+                                   "FROM `order` " +
+                                   "WHERE `id` BETWEEN %d AND %d " +
+                                   "GROUP BY `%s`", field, ids[0], ids[1], field);
+      
+      try (Statement statement = conn.createStatement()) {
+        statement.execute(query);
+        ResultSet rs = statement.getResultSet();
+        System.out.println("\n" + field.toUpperCase());
+        
+        JPanel gridElement = GUI.createGridElement(field);
+        
+        gridElement.add(GUI.createTable(rs), BorderLayout.CENTER);
+        mainWindow.add(gridElement);
+      } catch (SQLException e) {
+        throw new RuntimeException(e);
+      }
+    }
+    
+    mainWindow.setVisible(true);
   }
   
   private static void setPreparedStatement (PreparedStatement ps, String[] record) {
