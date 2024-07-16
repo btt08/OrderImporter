@@ -100,6 +100,7 @@ public class GUI {
     
     JPanel panel = new JPanel();
     panel.setLayout(new BorderLayout());
+    panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
     panel.add(label, BorderLayout.NORTH);
     
     return panel;

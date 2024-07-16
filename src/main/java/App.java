@@ -1,10 +1,10 @@
-import javax.swing.*;
-import java.awt.*;
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+import java.awt.BorderLayout;
 import java.io.*;
 import java.nio.file.Files;
 import java.sql.*;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Properties;
 
 
@@ -71,7 +71,7 @@ public class App {
                                                    PreparedStatement.RETURN_GENERATED_KEYS);
       String line;
       int count = 0;
-      List<Integer> generatedKeys = new ArrayList<>();
+      ArrayList<Integer> generatedKeys = new ArrayList<>();
       
       // Salta la línea de la cabecera
       fileReader.readLine();
@@ -116,7 +116,7 @@ public class App {
       System.out.println("Exportando datos al fichero " + exportFile.toPath());
       
       ResultSet rs = statement.executeQuery(query);
-      List<String> dataToExport = getCSVDataToExport(rs);
+      ArrayList<String> dataToExport = getCSVDataToExport(rs);
       
       writeToFile(dataToExport);
       System.out.println("Archivo creado correctamente");
@@ -125,7 +125,7 @@ public class App {
     }
   }
   
-  private static void writeToFile (List<String> dataToExport) {
+  private static void writeToFile (ArrayList<String> dataToExport) {
     try (FileWriter fw = new FileWriter(exportFile)) {
       for (String record : dataToExport) {
         fw.write(record + "\n");
@@ -152,7 +152,6 @@ public class App {
         ResultSet rs = statement.getResultSet();
         
         JPanel gridElement = GUI.createGridElement(field);
-        gridElement.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
         
         gridElement.add(GUI.createTable(rs), BorderLayout.CENTER);
         mainWindow.add(gridElement);
@@ -186,7 +185,7 @@ public class App {
     }
   }
   
-  private static void executeBatch (PreparedStatement ps, List<Integer> generatedKeys) throws SQLException {
+  private static void executeBatch (PreparedStatement ps, ArrayList<Integer> generatedKeys) throws SQLException {
     ps.executeBatch();
     ResultSet rs = ps.getGeneratedKeys();
     
@@ -195,8 +194,8 @@ public class App {
     }
   }
   
-  private static List<String> getCSVDataToExport (ResultSet rs) throws SQLException {
-    List<String> dataToExport = new ArrayList<>();
+  private static ArrayList<String> getCSVDataToExport (ResultSet rs) throws SQLException {
+    ArrayList<String> dataToExport = new ArrayList<>();
     
     dataToExport.add("Order ID,Order Priority,Order Date,Region,Country," +
                      "Item Type,Sales Channel,Ship Date,Units Sold,Unit Price," +
