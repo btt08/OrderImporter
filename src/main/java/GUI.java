@@ -77,14 +77,15 @@ public class GUI {
       table.getColumnModel().getColumn(0).setPreferredWidth(250);
       table.getColumnModel().getColumn(1).setPreferredWidth(60);
       
-      // Fija la columna de cantidad a la derecha
+      // Justifica la columna de cantidad a la derecha
       DefaultTableCellRenderer cellRenderer = new DefaultTableCellRenderer();
       cellRenderer.setHorizontalAlignment(JLabel.RIGHT);
       table.getColumnModel().getColumn(1).setCellRenderer(cellRenderer);
       table.setPreferredScrollableViewportSize(table.getPreferredSize());
       
       JScrollPane scrollPane = new JScrollPane(table);
-      scrollPane.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+      scrollPane.setBorder(BorderFactory.createEmptyBorder(0, 0, 0,0));
+      
       return scrollPane;
     } catch (SQLException e) {
       throw new RuntimeException(e);
@@ -92,6 +93,7 @@ public class GUI {
   }
   
   public static JPanel createGridElement (String field) {
+    System.out.println("\n" + field.toUpperCase());
     JLabel label = new JLabel(field.toUpperCase());
     label.setFont(new Font("Serif", Font.BOLD, 20));
     label.setSize(100, 50);
@@ -110,7 +112,7 @@ public class GUI {
     gridLayout.setVgap(30);
     mainWindow.setLayout(gridLayout);
     mainWindow.setResizable(false);
-    mainWindow.setBounds(200, 200, 1100, 800);
+    mainWindow.setBounds(200, 200, 1200, 800);
     mainWindow.setDefaultCloseOperation(EXIT_ON_CLOSE);
     
     return mainWindow;

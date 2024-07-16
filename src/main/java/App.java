@@ -1,26 +1,29 @@
 import javax.swing.*;
 import java.awt.*;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Files;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 
 
 public class App {
   private static final Integer BATCH_SIZE = 1000;
   
-  private static final String DB_URL = "jdbc:mysql://localhost/prueba_basica";
-  private static final String DB_USER = "root";
-  private static final String DB_PWD = "";
-  
   private static File importFile;
   private static File exportFile;
   
   public static void main (String[] args) {
+    Properties props = new Properties();
+    
+    try (FileInputStream fis = new FileInputStream("app.config")) {
+      props.load(fis);
+    } catch (IOException e) {
+      System.out.println("Error cargando el fichero de configuración");
+      throw new RuntimeException(e);
+    }
+    
     importFile = GUI.selectImportFile();
     exportFile = GUI.selectSaveFile();
     
@@ -28,7 +31,9 @@ public class App {
       GUI.showError();
     }
     
-    try (Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PWD)) {
+    try (Connection conn = DriverManager.getConnection(props.getProperty("DB_URL"),
+                                                       props.getProperty("DB_USER"),
+                                                       props.getProperty("DB_PWD"))) {
       conn.setAutoCommit(false);
       
       // Guardamos id mínimo y máximo para identificar lo insertado
@@ -41,7 +46,7 @@ public class App {
       
       exportToFile(conn, ids);
       
-      System.out.println("Creando resumen de los datos\n\n");
+      System.out.println("Creando resumen de los datos\n");
       generateSummary(conn, ids);
       
       conn.setAutoCommit(true);
@@ -77,7 +82,7 @@ public class App {
         
         setPreparedStatement(ps, record);
         
-        if (count % BATCH_SIZE == 0) {
+        if (count % BATCH_SIZE == 0 && count > 0) {
           executeBatch(ps, generatedKeys);
           System.out.println("Registros procesados: " + count);
         }
@@ -86,7 +91,7 @@ public class App {
       executeBatch(ps, generatedKeys);
       
       System.out.println("Registros procesados: " + count);
-      System.out.println("\nFinalizada lectura del fichero\n\n");
+      System.out.println("\nFinalizada lectura del fichero\n");
       System.out.println("Se han encontrado " + (count - generatedKeys.size()) + " duplicados");
       
       return !generatedKeys.isEmpty() ?
@@ -113,16 +118,19 @@ public class App {
       ResultSet rs = statement.executeQuery(query);
       List<String> dataToExport = getCSVDataToExport(rs);
       
-      try (FileWriter fw = new FileWriter(exportFile)) {
-        for (String record : dataToExport) {
-          fw.write(record + "\n");
-        }
-        
-        System.out.println("Archivo creado correctamente");
-      } catch (IOException e) {
-        throw new RuntimeException(e);
-      }
+      writeToFile(dataToExport);
+      System.out.println("Archivo creado correctamente");
     } catch (SQLException e) {
+      throw new RuntimeException(e);
+    }
+  }
+  
+  private static void writeToFile (List<String> dataToExport) {
+    try (FileWriter fw = new FileWriter(exportFile)) {
+      for (String record : dataToExport) {
+        fw.write(record + "\n");
+      }
+    } catch (IOException e) {
       throw new RuntimeException(e);
     }
   }
@@ -142,9 +150,9 @@ public class App {
       try (Statement statement = conn.createStatement()) {
         statement.execute(query);
         ResultSet rs = statement.getResultSet();
-        System.out.println("\n" + field.toUpperCase());
         
         JPanel gridElement = GUI.createGridElement(field);
+        gridElement.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
         
         gridElement.add(GUI.createTable(rs), BorderLayout.CENTER);
         mainWindow.add(gridElement);
@@ -174,7 +182,6 @@ public class App {
       ps.setDouble(14, Double.parseDouble(record[13]));
       ps.addBatch();
     } catch (SQLException e) {
-      System.out.println("add batch");
       throw new RuntimeException(e);
     }
   }
